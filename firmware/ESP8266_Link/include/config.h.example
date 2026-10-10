@@ -1,0 +1,17 @@
+#pragma once
+// Copy this file to config.h and fill in your secrets.
+// config.h is gitignored so keys never get pushed.
+
+// WiFi network the ESP8266 joins
+#define WIFI_SSID "nickel"
+#define WIFI_PASS "REPLACE_ME"
+
+// ThingSpeak channel Write API Key (channel page -> Sharing -> Write API Key)
+#define THINGSPEAK_API_KEY "REPLACE_ME"
+
+// Field mapping: field1 = temp C, field2 = humidity %, field3 = rain (0/1),
+// field4 = forecast probability %, field5 = temp-trend C/hr, field6 = hum-trend %/hr
+#define THINGSPEAK_INTERVAL_MS 20000UL  // ThingSpeak minimum is 15000
+
+// How often to send F:<prob> back to the STM32 (it treats values <60s old as fresh)
+#define FORECAST_TX_MS 30000UL

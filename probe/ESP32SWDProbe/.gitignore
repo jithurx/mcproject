@@ -1,0 +1,23 @@
+# Build artifacts
+*.o
+*.elf
+*.hex
+*.map
+*.bin
+*.merged.bin
+
+# Python
+__pycache__/
+*.pyc
+
+# Scratch / stray files
+t.c
+t.o
+t2.o
+UsersceciliaAppDataLocalTempopencodeocd1.log
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

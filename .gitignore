@@ -1,0 +1,41 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+*.pioenvs
+
+# PlatformIO build outputs (firmware images are rebuilt via `pio run`)
+firmware/*/firmware*.bin
+firmware/*/firmware*.elf
+firmware/*/firmware*.hex
+firmware/*/firmware*.map
+probe/*/.pio/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# C build leftovers (third-party/stm32flash)
+*.o
+*.a
+*.so
+
+# Secrets (WiFi password, ThingSpeak key) -- never push these
+firmware/ESP8266_Link/include/config.h
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Serial logs / local dumps
+*.log
+*.bin.dump
+backup*.bin
