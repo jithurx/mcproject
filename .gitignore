@@ -23,8 +23,11 @@ venv/
 *.a
 *.so
 
-# Secrets (WiFi password, ThingSpeak key) -- never push these
-firmware/ESP8266_Link/include/config.h
+# Secrets (WiFi password, ThingSpeak keys) -- never push these
+legacy/ESP8266_Link/include/config.h
+
+# ML model artifact (regenerate with tools/ml_forecast.py train)
+tools/*.pkl
 
 # Editors / OS
 .vscode/
