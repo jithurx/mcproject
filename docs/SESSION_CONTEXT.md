@@ -71,3 +71,44 @@
 2. Offline ML (Decision Tree start): features temp/humidity/ΔT/ΔH/recent-rain,
    labels from rainfall records → `F:<prob>` back to screen 3 as `SRC:ESP`.
 3. Optional: FreeRTOS tasks, pressure sensor, rain gauge, mobile app.
+
+---
+# Session 2026-10-11 — ESP uplink owner (STM32 senses, ESP networks)
+
+## What changed
+- **Stock-AT path retired** (`docs/THINGSPEAK_AT.md` marked SUPERSEDED):
+  UART0 contention (CP2102 vs PA9 on RX/GPIO3) blocked flashing + monitoring
+  while wired; zero AT commands ever landed (`CWMODE:2`, `No AP`, echo on).
+- **New firmware `firmware/ESP8266_Bridge/` (`esp-uplink v1`, `nodemcuv2`)**:
+  STM32 link on SoftwareSerial **D5/GPIO14←PA9, D6/GPIO12→PA10 @9600**,
+  HW Serial @115200 stays on PC USB (flash + monitor with STM32 attached);
+  WiFi STA join (30 s backoff), ThingSpeak push /3 min (fresh <60 s, entry
+  id from response **body** last line), `TELE`/`STM:`/`TS:` logs, 60 s
+  auto-status, `status`/`?`, PC→STM32 forward, slow/fast LED. Secrets baked
+  in source (risk accepted, rotate if public).
+- **`firmware/STM32_Weather/` telemetry mode** (46,700 B, vector
+  `0x08008469`, VERIFY PASS): sensors + OLED unchanged, `T:` TX /5 s on
+  `Serial1 @9600`, `F:` RX parse, AT engine retired in-source. OLED rows
+  re-measured for 128 px (`T:../H:..`, `RAIN!` size 3, right-aligned SRC tag).
+- **Verified live**: `wifi: up ip=10.150.128.21 rssi=-40..-54`,
+  `TELE T=28.6 H=70 R=0` /5.0 s, finger test moved T/H + flipped `R:0→1`,
+  `TS: entry=5`. See `docs/ESP_UPLINK.md`, `docs/MILESTONE_UPLINK.md`.
+
+## Bug lessons (do not regress)
+- **`%f` in `printf` hard-faults this target** (not just empty `snprintf`):
+  `Serial1.printf("T:%.1f..")` froze MCU ~5 s after boot (stuck RAIN STATUS
+  + dead LED). Hand-format tenths (`%d.%d`); `Print::print(f, n)` is safe.
+- **SoftwareSerial@115200 + WiFi = Soft WDT crash loop** (`Exception (4)`
+  /8 s). Stable at @9600 both sides (`STM_BAUD` ↔ `ESP_BAUD`).
+- **SWD bulk reads fail while target runs, pass halted**: halt first via
+  `introspect.py --halt`; piecemeal 8 KB dumps + byte-compare as verify
+  fallback; `reset + resume` after (failed runs leave target halted). `-4`
+  flurries also mean weak 3V3 — own-USB power. First touch after USB swap
+  usually desyncs — RTS reset / retry ×3.
+- **ThingSpeak entry id is the last body line**, not the status line; drain
+  with `(connected() || available())`.
+
+## Next steps
+1. `F:<prob>` forecast fetch on ESP → screen 3 `SRC:ESP` (reserved).
+2. `tools/ml_forecast.py loop` → field5 (dormant until (1) reads it).
+3. Optional: FreeRTOS, pressure sensor, rain gauge, mobile app.

@@ -39,6 +39,26 @@ over Dupont wires), reflash the probe, and re-verify with
 # link check
 python probe/ESP32SWDProbe/tests/part_id_check.py /dev/ttyUSB0
 python probe/ESP32SWDProbe/probe_tools/introspect.py /dev/ttyUSB0
+python probe/ESP32SWDProbe/probe_tools/introspect.py /dev/ttyUSB0 --halt  # halt: registers + quiet target
+```
+
+## Hard lessons (2026-10-11)
+
+- **Bulk SWD reads fail while the target runs, pass while halted.**
+  `chunk_flash.py` pre-read and full verify (`-4 WAIT` ×4) stall against a
+  running core, while `part_id_check` (PASS) and word reads sail through.
+  Fix: `introspect.py --halt` first (halt sticks until reset/resume), then
+  flash. Same for flaky `dump_restore.py` runs.
+- **Marginal power looks like `-4 WAIT`.** Flash charge-pump current sags a
+  weak 3V3 rail → intermittent WAITs mid-program (retries 2–4×, ~60 s/chunk
+  becomes ~300 s). Blue Pill on its **own USB**; `GND↔GND` only.
+- **Verify fallback:** if bulk verify keeps failing, every `P` chunk is
+  already internally verified — confirm with 8 KB `dump_restore.py` slices
+  and byte-compare against the image, then `reset + resume` via
+  `probe_client` (`p.reset(); p.resume()`). A failed run leaves the target
+  **halted**: resume it or nothing runs.
+- First touch after a USB swap often desyncs (`K failed`) — one RTS reset
+  or 2–3 retries resync, then PASSes stay solid.
 
 # backup before flashing
 python probe/ESP32SWDProbe/probe_tools/dump_restore.py dump /dev/ttyUSB0 backup.bin
